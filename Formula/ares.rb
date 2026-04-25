@@ -15,7 +15,7 @@ class Ares < Formula
   desc "Autonomous AI agency operator — one operator, every specialist"
   homepage "https://aresdeploy.com"
   url "https://aresdeploy.com/dist/ares-v0.1.0.tar.gz"
-  sha256 "dc5a164060fea02a1021dde355fab1c779b8fb33d0defcab7069dfef6f8b4d6a"
+  sha256 "cb423dafd5cd4602f3aa0c55f7d0cc69d508f1d5f75576cb971b91782d0bed7c"
   license :cannot_represent
   version "0.1.0"
 
