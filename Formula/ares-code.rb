@@ -3,12 +3,16 @@
 #
 # Install:
 #   brew tap aresaiagent/ares
-#   brew install ares
+#   brew install ares-code
 #
 # Or one-liner:
 #   curl -fsSL https://aresdeploy.com/install.sh | sh
+#
+# Formula name is `ares-code` (mirrors Anthropic's `claude-code`) to avoid
+# collision with the unrelated `ares` formula in homebrew-core. The binary
+# itself still installs as `ares`, so users run `ares` in their terminal.
 
-class Ares < Formula
+class AresCode < Formula
   desc "Autonomous AI agency operator — Rust agent harness"
   homepage "https://aresdeploy.com"
   version "0.1.0"
