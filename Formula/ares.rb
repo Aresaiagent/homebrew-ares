@@ -1,47 +1,70 @@
-# Homebrew formula for Ares — the autonomous agency operator.
+# Homebrew formula for Ares — autonomous AI agency operator (Rust harness).
 # https://aresdeploy.com
 #
 # Install:
-#   brew install Aresaiagent/ares/ares
+#   brew tap aresaiagent/ares
+#   brew install ares
 #
-# Or the branded one-liner (preferred):
+# Or one-liner:
 #   curl -fsSL https://aresdeploy.com/install.sh | sh
-#
-# Release artifacts are hosted on aresdeploy.com/dist/ (not GitHub).
-# sha256 is updated automatically by the release workflow in the
-# Aresaiagent/ares-deploy repository on every `git tag v*` push.
 
 class Ares < Formula
-  desc "Autonomous AI agency operator — one operator, every specialist"
+  desc "Autonomous AI agency operator — Rust agent harness"
   homepage "https://aresdeploy.com"
-  url "https://aresdeploy.com/dist/ares-v0.1.0.tar.gz"
-  sha256 "cb423dafd5cd4602f3aa0c55f7d0cc69d508f1d5f75576cb971b91782d0bed7c"
-  license :cannot_represent
   version "0.1.0"
+  license :cannot_represent
+
+  on_macos do
+    on_arm do
+      url "https://github.com/Aresaiagent/homebrew-ares/releases/download/v0.1.0/ares-v0.1.0-darwin-arm64.tar.gz"
+      sha256 "e75f324b463b8120db5abe38b2b9288e6f82254ebe29ea573c5e8c67cfbaeda7"
+    end
+  end
 
   def install
     bin.install "ares"
-    prefix.install "VERSION" if File.exist?("VERSION")
   end
 
   def caveats
     <<~EOS
-      Ares requires Docker to be installed and running on your machine.
-      If you don't have Docker: https://www.docker.com/products/docker-desktop/
+      Ares (Rust harness) installed.
 
-      Quick start:
-        ares init --token=YOUR_TOKEN   # one-time setup (token from activation email)
-        ares start                     # launch the local agent
-        ares status                    # check it's running
-        ares help                      # all commands
+      First-time setup:
+        ares                         # launches the REPL
+                                     # opens browser for OAuth login on first run
+        ares --version               # build info
+        ares system-prompt           # print the assembled system prompt
 
-      Config lives at ~/.ares/
-      Docs: https://aresdeploy.com/desktop
+      Auth — pick one (matches Claude Code's model):
+        - Run `ares` and complete OAuth in the browser
+        - Or set ANTHROPIC_API_KEY in your shell
+
+      In-REPL slash commands (Ares-specific):
+        /fleet-status                GHL credentials + dedup + learning phase
+        /pipeline-report [loc_id]    pipelines + opps + dollar values
+        /send-sequence <name> <id>   deploy a nurture sequence (phase-gated)
+        /learning-phase show         show current phase + ladder
+
+      Config lives at:
+        ~/.ares/config               per-user state (default location, phase)
+        ~/.claude/agents/            sub-agent definitions
+
+      Subscription required for use:
+        https://aresdeploy.com/pricing
+
+      Docs:
+        https://aresdeploy.com/desktop
     EOS
   end
 
   test do
-    # `ares help` should exit 0 and mention 'ares' somewhere in its output.
-    assert_match "ares", shell_output("#{bin}/ares help 2>&1").downcase
+    # `--version` works without auth.
+    assert_match "Ares Code", shell_output("#{bin}/ares --version")
+    # `bootstrap-plan` lists all phases including the 3 Ares additions.
+    plan = shell_output("#{bin}/ares bootstrap-plan")
+    assert_match "MainRuntime", plan
+    assert_match "VaultDiscovery", plan
+    assert_match "GhlStatusCheck", plan
+    assert_match "LearningPhaseResolution", plan
   end
 end
