@@ -17,24 +17,24 @@
 class Ares < Formula
   desc "Autonomous AI agency operator (Rust harness + GHL/Meta MCP servers)"
   homepage "https://aresdeploy.com"
-  version "0.2.0"
+  version "0.3.0"
   license :cannot_represent
 
   on_macos do
     on_arm do
-      # Mirrored from Aresaiagent/ares-runtime v0.2.0 (private repo) to
+      # Mirrored from Aresaiagent/ares-runtime v0.3.0 (private repo) to
       # this public homebrew-ares repo so brew can fetch without auth.
-      url "https://github.com/Aresaiagent/homebrew-ares/releases/download/v0.2.0/ares-darwin-arm64.tar.gz"
-      sha256 "5b7672adfc0d3481caefcb79cc9d8aea045eca7ffe4ee5c512a1d336ce715ea8"
+      url "https://github.com/Aresaiagent/homebrew-ares/releases/download/v0.3.0/ares-darwin-arm64.tar.gz"
+      sha256 "80ad8e7b11ee3bd894085f1eecbb418567ed8b721c7fb9054787c8f314061759"
     end
     on_intel do
-      odie "ares v0.2.0 darwin-x86_64 build is not yet published. Build from source: " \
+      odie "ares v0.3.0 darwin-x86_64 build is not yet published. Build from source: " \
            "https://github.com/Aresaiagent/ares-runtime"
     end
   end
 
   on_linux do
-    odie "ares v0.2.0 Linux build is not yet published. Build from source: " \
+    odie "ares v0.3.0 Linux build is not yet published. Build from source: " \
          "https://github.com/Aresaiagent/ares-runtime"
   end
 
@@ -68,7 +68,7 @@ class Ares < Formula
 
   def caveats
     <<~EOS
-      Ares v0.2.0 installed.
+      Ares v0.3.0 installed.
 
       Three binaries:
         ares             interactive Rust agent REPL (BYOK Anthropic key)
