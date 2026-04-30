@@ -22,7 +22,9 @@ class Ares < Formula
 
   on_macos do
     on_arm do
-      url "https://github.com/Aresaiagent/ares-runtime/releases/download/v0.2.0/ares-darwin-arm64.tar.gz"
+      # Mirrored from Aresaiagent/ares-runtime v0.2.0 (private repo) to
+      # this public homebrew-ares repo so brew can fetch without auth.
+      url "https://github.com/Aresaiagent/homebrew-ares/releases/download/v0.2.0/ares-darwin-arm64.tar.gz"
       sha256 "5b7672adfc0d3481caefcb79cc9d8aea045eca7ffe4ee5c512a1d336ce715ea8"
     end
     on_intel do
