@@ -39,7 +39,10 @@ class Ares < Formula
   end
 
   def install
-    bin.install "bin/ares", "bin/ares-ghl-mcp", "bin/ares-meta-mcp"
+    # Tarball has files under bin/, so brew extracts into a working dir
+    # that is itself the bin/ directory. Install them as files at the
+    # current working directory's root.
+    bin.install "ares", "ares-ghl-mcp", "ares-meta-mcp"
   end
 
   def post_install
