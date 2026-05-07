@@ -25,7 +25,7 @@ class Ares < Formula
       # Mirrored from Aresaiagent/ares-runtime v0.3.0 (private repo) to
       # this public homebrew-ares repo so brew can fetch without auth.
       url "https://github.com/Aresaiagent/homebrew-ares/releases/download/v0.3.0/ares-darwin-arm64.tar.gz"
-      sha256 "80ad8e7b11ee3bd894085f1eecbb418567ed8b721c7fb9054787c8f314061759"
+      sha256 "8c92ffd3020c6f4d880389aa239ce161506409a63241b8ad20d4ca90ce7bd42d"
     end
     on_intel do
       odie "ares v0.3.0 darwin-x86_64 build is not yet published. Build from source: " \
