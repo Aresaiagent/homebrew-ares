@@ -54,9 +54,15 @@ class Ares < Formula
   def post_install
     require "securerandom"
 
+    # `chmod` is intentionally omitted in post_install — Homebrew's Sorbet-
+    # wrapped Pathname#chmod fails with EPERM under certain runtime
+    # configurations even on user-owned paths. The bash CLI's `ares init`
+    # handles tight perms (700/600) when it generates the config; for an
+    # upgrade we leave existing perms alone, and for a fresh post-install
+    # the user's umask gives us 755/644 which is acceptable for a
+    # non-secret directory.
     settings_dir = Pathname.new(Dir.home) / ".ares"
     settings_dir.mkpath
-    settings_dir.chmod(0700)
 
     # ---- Stdio MCP registration (existing behavior) ----
     settings_file = settings_dir / "settings.json"
@@ -85,10 +91,9 @@ class Ares < Formula
     unless existing.match?(/^ARES_MCP_TOKEN=/m)
       token = SecureRandom.hex(16)
       File.open(config_file, "a") { |f| f.puts "ARES_MCP_TOKEN=#{token}" }
-      config_file.chmod(0600)
     end
 
-    # ---- LaunchAgent: render template, write to ~/Library/LaunchAgents, load ----
+    # ---- LaunchAgent: render template, write, load ----
     mcp_dir = pkgshare/"desktop-mcp"
     plist_label = "live.jtmarketing.ares-mcp"
     plist_path = Pathname.new(Dir.home) / "Library" / "LaunchAgents" / "#{plist_label}.plist"
@@ -99,14 +104,17 @@ class Ares < Formula
                .gsub("__MCP_DIR__", mcp_dir.to_s)
                .gsub("__HOME__", Dir.home)
     plist_path.write(rendered)
-    plist_path.chmod(0644)
 
-    # Bootstrap idempotently. bootout-then-bootstrap survives upgrades.
+    # Try modern bootstrap first, fall back to legacy load -w on error 5
+    # (stale launchd state from a prior bootout we couldn't fully clean).
     uid = Process.uid
     quiet_system "/bin/launchctl", "bootout", "gui/#{uid}/#{plist_label}"
     unless quiet_system "/bin/launchctl", "bootstrap", "gui/#{uid}", plist_path.to_s
-      opoo "launchctl bootstrap failed. Load manually with:"
-      opoo "  launchctl bootstrap gui/#{uid} #{plist_path}"
+      quiet_system "/bin/launchctl", "unload", plist_path.to_s
+      unless quiet_system "/bin/launchctl", "load", "-w", plist_path.to_s
+        opoo "Could not load the Desktop MCP LaunchAgent automatically."
+        opoo "Load it manually: launchctl load -w #{plist_path}"
+      end
     end
   end
 
