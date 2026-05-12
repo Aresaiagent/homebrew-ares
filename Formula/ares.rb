@@ -41,8 +41,11 @@ class Ares < Formula
   # macOS users have python3 already).
 
   def install
-    # Rust binaries on PATH
-    bin.install "ares", "ares-ghl-mcp", "ares-meta-mcp"
+    # v0.4.0 tarball has two top-level dirs (bin/ and share/) so Homebrew
+    # does NOT auto-strip a single-root prefix. Reference the bin/ paths
+    # explicitly. (v0.3.0 tarball had only bin/ so the strip happened and
+    # the install line was `bin.install "ares", ...` without bin/ prefix.)
+    bin.install "bin/ares", "bin/ares-ghl-mcp", "bin/ares-meta-mcp"
 
     # Desktop MCP Python source + plist template into pkgshare
     (pkgshare/"desktop-mcp").install Dir["share/ares/desktop-mcp/*"]
