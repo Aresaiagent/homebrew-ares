@@ -103,7 +103,9 @@ class Ares < Formula
     rendered = template
                .gsub("__MCP_DIR__", mcp_dir.to_s)
                .gsub("__HOME__", Dir.home)
-    plist_path.write(rendered)
+    # Use File.write (not Pathname#write — Homebrew's wrapper refuses to
+    # overwrite, which breaks every re-run / upgrade after first install).
+    File.write(plist_path, rendered)
 
     # Try modern bootstrap first, fall back to legacy load -w on error 5
     # (stale launchd state from a prior bootout we couldn't fully clean).
