@@ -101,7 +101,11 @@ class Ares < Formula
     # plist into pkgshare and let the user copy + load it themselves
     # (caveats below gives a one-line command; install.sh automates it
     # for the curl-pipe path).
-    mcp_dir = pkgshare/"desktop-mcp"
+    # opt_pkgshare gives /opt/homebrew/opt/ares/share/ares — a stable
+    # symlink that always points at the current version. Using `pkgshare`
+    # here would bake the version-specific Cellar path into the plist and
+    # break it on every upgrade.
+    mcp_dir = opt_pkgshare/"desktop-mcp"
     plist_label = "live.jtmarketing.ares-mcp"
     rendered = (mcp_dir/"#{plist_label}.plist.template").read
                .gsub("__MCP_DIR__", mcp_dir.to_s)
