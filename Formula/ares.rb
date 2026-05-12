@@ -93,31 +93,20 @@ class Ares < Formula
       File.open(config_file, "a") { |f| f.puts "ARES_MCP_TOKEN=#{token}" }
     end
 
-    # ---- LaunchAgent: render template, write, load ----
+    # ---- LaunchAgent: render plist into pkgshare ----
+    #
+    # macOS blocks processes spawned by brew (and other non-Terminal
+    # frontends) from writing to ~/Library/LaunchAgents — both the file
+    # write AND `launchctl bootstrap` raise EPERM. Render the resolved
+    # plist into pkgshare and let the user copy + load it themselves
+    # (caveats below gives a one-line command; install.sh automates it
+    # for the curl-pipe path).
     mcp_dir = pkgshare/"desktop-mcp"
     plist_label = "live.jtmarketing.ares-mcp"
-    plist_path = Pathname.new(Dir.home) / "Library" / "LaunchAgents" / "#{plist_label}.plist"
-    plist_path.parent.mkpath
-
-    template = (mcp_dir/"#{plist_label}.plist.template").read
-    rendered = template
+    rendered = (mcp_dir/"#{plist_label}.plist.template").read
                .gsub("__MCP_DIR__", mcp_dir.to_s)
                .gsub("__HOME__", Dir.home)
-    # Use File.write (not Pathname#write — Homebrew's wrapper refuses to
-    # overwrite, which breaks every re-run / upgrade after first install).
-    File.write(plist_path, rendered)
-
-    # Try modern bootstrap first, fall back to legacy load -w on error 5
-    # (stale launchd state from a prior bootout we couldn't fully clean).
-    uid = Process.uid
-    quiet_system "/bin/launchctl", "bootout", "gui/#{uid}/#{plist_label}"
-    unless quiet_system "/bin/launchctl", "bootstrap", "gui/#{uid}", plist_path.to_s
-      quiet_system "/bin/launchctl", "unload", plist_path.to_s
-      unless quiet_system "/bin/launchctl", "load", "-w", plist_path.to_s
-        opoo "Could not load the Desktop MCP LaunchAgent automatically."
-        opoo "Load it manually: launchctl load -w #{plist_path}"
-      end
-    end
+    File.write(mcp_dir/"#{plist_label}.plist", rendered)
   end
 
   def caveats
@@ -134,15 +123,23 @@ class Ares < Formula
         crash, survives logout. The cloud agent at app.aresdeploy.com
         uses it to drive your machine (browser + files + terminal + apps).
 
-        Status: curl http://localhost:9999/health
-        Logs:   ~/.ares/mcp.stderr.log
+      One-time activation (macOS blocks brew from doing this for you):
 
-      First-run setup is done automatically by post_install:
+        cp #{HOMEBREW_PREFIX}/share/ares/desktop-mcp/live.jtmarketing.ares-mcp.plist \\
+           ~/Library/LaunchAgents/ \\
+        && launchctl bootstrap "gui/$(id -u)" \\
+           ~/Library/LaunchAgents/live.jtmarketing.ares-mcp.plist
+
+      Verify:
+        curl http://localhost:9999/health   # → 200 with 21-tool manifest
+        tail -f ~/.ares/mcp.stderr.log
+
+      First HTTP request triggers a one-time pip install + Playwright
+      Chromium download (~150 MB). Tail the stderr log to watch.
+
+      Already done for you on first install:
         ✓ ARES_MCP_TOKEN generated in ~/.ares/config
-        ✓ ~/Library/LaunchAgents/live.jtmarketing.ares-mcp.plist installed
-        ✓ launchctl bootstrap loaded the agent
-        First HTTP request triggers pip install + Playwright Chromium
-        (~150 MB one-time download). Tail ~/.ares/mcp.stderr.log to watch.
+        ✓ Plist rendered at the path above (absolute paths resolved)
 
       MCP wiring for any client (Claude Code, Mac app, your own):
         ~/.ares/settings.json registers the GHL + Meta stdio servers.
